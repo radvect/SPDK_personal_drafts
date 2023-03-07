@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+echo $(./setup.sh)
+echo $(ifconfig enp1s0f0np0 5.5.5.10/24 up)
+echo $(modprobe ib_cm)
+echo $(modprobe ib_core)
+# Please note that ib_ucm does not exist in newer versions of the kernel and is not required.
+echo $(modprobe ib_ucm || true)
+echo $(modprobe ib_umad)
+echo $(modprobe ib_uverbs)
+echo $(modprobe iw_cm)
+echo $(modprobe rdma_cm)
+echo $(modprobe rdma_ucm)
+echo $(modprobe mlx5_core)
+echo $(modprobe mlx5_ib)
+echo $(./rpc.py nvmf_create_transport -t RDMA -u 8192 -m 4 -c 0)
+echo $(./rpc.py bdev_nvme_attach_controller -b NVMe1 -t PCIe -a 0000:02:00.0)
+echo $(./rpc.py bdev_split_create NVMe1n1 2)
+echo $(./rpc.py bdev_passthru_create -b NVMe1n1p0 -p pt0)
+echo $(./rpc.py bdev_passthru_create -b NVMe1n1p1 -p pt1)
+echo $(./rpc.py nvmf_create_subsystem nqn.2016-06.io.spdk:back -a)
+echo $(./rpc.py nvmf_create_subsystem nqn.2017-06.io.spdk:back -a)
+echo $(./rpc.py nvmf_subsystem_add_ns nqn.2016-06.io.spdk:back pt0)
+echo $(./rpc.py nvmf_subsystem_add_ns nqn.2017-06.io.spdk:back pt1)
+echo $(./rpc.py nvmf_subsystem_add_listener nqn.2016-06.io.spdk:back -t rdma -a 5.5.5.10 -s 4420)
+echo $(./rpc.py nvmf_subsystem_add_listener nqn.2017-06.io.spdk:back -t rdma -a 5.5.5.10 -s 4421)
+
